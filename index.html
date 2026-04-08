@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Shot Tracker</title>
+</head>
+<body>
+    <label><input type="radio" name="track" value="rain.mp3" checked> A</label>
+    <label><input type="radio" name="track" value="silent.mp3"> B</label>
+    <br>
+    <button id="btn" onclick="toggleAudio()">Play</button>
+    <p id="stats">Made: 0 | Total: 0 | Pct: -</p>
+    <div id="log"></div>
+
+    <script>
+        let madeCount = 0
+        let totalCount = 0
+
+        let audio = new Audio('rain.mp3')
+        audio.loop = true
+        let tracking = false
+        let audioCtx = null
+
+        async function playSound(url) {
+            if (!audioCtx) audioCtx = new AudioContext()
+            const response = await fetch(url)
+            const buffer = await response.arrayBuffer()
+            const decoded = await audioCtx.decodeAudioData(buffer)
+            const source = audioCtx.createBufferSource()
+            source.buffer = decoded
+            source.connect(audioCtx.destination)
+            source.start()
+        }
+
+        function toggleAudio() {
+            const btn = document.getElementById('btn')
+            if (!tracking) {
+                audio.play()
+                tracking = true
+                btn.textContent = 'Stop'
+            } else {
+                audio.pause()
+                tracking = false
+                btn.textContent = 'Play'
+                logSession()
+            }
+        }
+
+        function updateStats() {
+            const pct = totalCount === 0 ? '-' : Math.round(madeCount / totalCount * 100) + '%'
+            document.getElementById('stats').textContent = `Made: ${madeCount} | Total: ${totalCount} | Pct: ${pct}`
+        }
+
+        audio.addEventListener('pause', () => {
+            tracking = false
+            document.getElementById('btn').textContent = 'Play'
+        })
+
+        audio.addEventListener('play', () => {
+            tracking = true
+            document.getElementById('btn').textContent = 'Stop'
+        })
+
+        function logSession() {
+            if (totalCount === 0) return  // don't log empty sessions
+            const pct = Math.round(madeCount / totalCount * 100) + '%'
+            const line = document.createElement('p')
+            line.textContent = `Made: ${madeCount} | Total: ${totalCount} | Pct: ${pct}`
+            document.getElementById('log').appendChild(line)
+            madeCount = 0
+            totalCount = 0
+            updateStats()
+        }
+
+        document.querySelectorAll('input[name="track"]').forEach(radio => {
+            radio.addEventListener('change', () => {
+                audio.pause()
+                audio = new Audio(radio.value)
+                audio.loop = true
+                tracking = false
+                document.getElementById('btn').textContent = 'Play'
+            })
+        })
+
+        navigator.mediaSession.setActionHandler('nexttrack', () => {
+            if (!tracking) return
+            playSound('swish.mp3')
+            console.log('next pressed')
+            ++madeCount
+            ++totalCount
+            console.log(`percent: ${madeCount/totalCount}`)
+            updateStats()
+        })
+
+        navigator.mediaSession.setActionHandler('previoustrack', () => {
+            if (!tracking) return
+            playSound('brick.mp3')
+            console.log('prev pressed')
+            ++totalCount
+            console.log(`percent: ${madeCount/totalCount}`)
+            updateStats()
+        })
+    </script>
+</body>
+</html>
