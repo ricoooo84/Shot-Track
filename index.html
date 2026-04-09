@@ -5,7 +5,7 @@
 </head>
 <body>
     <label><input type="radio" name="track" value="rain.mp3" checked> A</label>
-    <label><input type="radio" name="track" value="silent.mp3"> B</label>
+    <label><input type="radio" name="track" value="silence.mp3" checked> B</label>
     <br>
     <button id="btn" onclick="toggleAudio()">Play</button>
     <p id="stats">Made: 0 | Total: 0 | Pct: -</p>
@@ -19,6 +19,23 @@
         audio.loop = true
         let tracking = false
         let audioCtx = null
+
+        let wakeLock = null
+
+        async function requestWakeLock() {
+            try {
+                wakeLock = await navigator.wakeLock.request('screen')
+            } catch (e) {
+                console.log('Wake lock failed:', e)
+            }
+        }
+
+        function releaseWakeLock() {
+            if (wakeLock) {
+                wakeLock.release()
+                wakeLock = null
+            }
+        }
 
         async function playSound(url) {
             if (!audioCtx) audioCtx = new AudioContext()
@@ -37,11 +54,13 @@
                 audio.play()
                 tracking = true
                 btn.textContent = 'Stop'
+                requestWakeLock()
             } else {
                 audio.pause()
                 tracking = false
                 btn.textContent = 'Play'
                 logSession()
+                releaseWakeLock()
             }
         }
 
