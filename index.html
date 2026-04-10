@@ -184,20 +184,21 @@
 
   <script>
     const tracks = [
-      { name: 'Rain',                   file: 'rain.mp3' },
-      { name: 'Silence',                file: 'silence.mp3' },
-      { name: 'Shiloh (Rain)',           file: 'shilohrain.mp3' },
-      { name: 'Clara Lan San (slowed)',  file: 'claraslowed.mp3' },
+        { name: 'Rain',                   file: 'rain.mp3' },
+        { name: 'Silence',                file: 'silence.mp3' },
+        { name: 'Shiloh (Rain)',           file: 'shilohrain.mp3' },
+        { name: 'Clara Lan San (slowed)',  file: 'claraslowed.mp3' },
     ]
     let trackIndex = 0
 
     function cycleTrack() {
-      if (tracking) return
-      trackIndex = (trackIndex + 1) % tracks.length
-      document.getElementById('track-name').textContent = tracks[trackIndex].name
-      audio.pause()
-      audio = new Audio(tracks[trackIndex].file)
-      audio.loop = true
+        playSound('click.mp3')
+        if (tracking) return
+        trackIndex = (trackIndex + 1) % tracks.length
+        document.getElementById('track-name').textContent = tracks[trackIndex].name
+        audio.pause()
+        audio = new Audio(tracks[trackIndex].file)
+        audio.loop = true
     }
 
     let audio = new Audio(tracks[0].file)
@@ -249,11 +250,17 @@
     function toggleAudio() {
       const ball = document.getElementById('ball-btn')
       if (!tracking) {
-        audio.play()
+        madeCount = 0
+        missCount = 0
+        updateStats()
         tracking = true
         ball.classList.add('playing')
         startTimer()
         requestWakeLock()
+        playSound('dribble.mp3')
+        setTimeout(() => {
+            audio.play()
+        }, 1000)
       } else {
         audio.pause()
         tracking = false
@@ -261,6 +268,7 @@
         stopTimer()
         logSession()
         releaseWakeLock()
+        playSound('buzzer.mp3')
       }
     }
 
@@ -279,9 +287,6 @@
       const line = document.createElement('p')
       line.textContent = madeCount + '/' + total + ' · ' + pct + '%'
       document.getElementById('log').prepend(line)
-      madeCount = 0
-      missCount = 0
-      updateStats()
     }
 
     navigator.mediaSession.setActionHandler('nexttrack', () => {
