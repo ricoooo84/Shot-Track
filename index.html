@@ -177,7 +177,10 @@
   <div class="pct" id="pct">00.0%</div>
 
   <div class="log-section">
-    <div class="log-label">Sessions</div>
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+      <div class="log-label" style="margin-bottom:0;">Sessions</div>
+      <div class="log-label" style="margin-bottom:0; cursor:pointer;" onclick="exportCSV()">Export CSV</div>
+    </div>
     <div id="log"></div>
   </div>
 
@@ -200,9 +203,26 @@
         audio.loop = true
     }
 
+    function exportCSV() {
+      if (!allSessions.length) return
+      const lines = ['date,seconds,result']
+      allSessions.forEach(s => {
+        s.shots.forEach(shot => {
+          lines.push(`${s.date},${shot.second},${shot.result}`)
+        })
+      })
+      const blob = new Blob([lines.join('\n')], { type: 'text/csv' })
+      const a = document.createElement('a')
+      a.href = URL.createObjectURL(blob)
+      a.download = 'shot-tracker.csv'
+      a.click()
+    }
+
     let audio = new Audio(tracks[0].file)
     audio.loop = true
     let audioCtx = null
+
+    let currentShots = []
 
     async function playSound(url) {
       if (!audioCtx) audioCtx = new AudioContext()
@@ -249,6 +269,7 @@
     function toggleAudio() {
       const ball = document.getElementById('ball-btn')
       if (!tracking) {
+        currentShots = []
         madeCount = 0
         missCount = 0
         updateStats()
@@ -279,19 +300,31 @@
       document.getElementById('pct').textContent = '' + pct + '%'
     }
 
+    const allSessions = []
+
     function logSession() {
       if (madeCount + missCount === 0) return
       const total = madeCount + missCount
       const pct = (madeCount / total * 100).toFixed(1)
       const line = document.createElement('p')
-      line.textContent = madeCount + '/' + total + ' · ' + pct + '%'
+      line.textContent = madeCount + '/' + total + ' - ' + pct + '%'
       document.getElementById('log').prepend(line)
+
+      const now = new Date()
+      const date = now.getFullYear() + '-' +
+        String(now.getMonth() + 1).padStart(2, '0') + '-' +
+        String(now.getDate()).padStart(2, '0')
+      const m = String(Math.floor(seconds / 60)).padStart(2, '0')
+      const s = String(seconds % 60).padStart(2, '0')
+      const shots = currentShots
+      allSessions.push({ date, duration: seconds, formatted: m + ':' + s, shots })
     }
 
     navigator.mediaSession.setActionHandler('nexttrack', () => {
       if (!tracking) return
       playSound('swish.mp3')
       madeCount++
+      currentShots.push({ result: 1, second: seconds })
       updateStats()
     })
 
@@ -299,6 +332,7 @@
       if (!tracking) return
       playSound('brick.mp3')
       missCount++
+      currentShots.push({ result: 0, second: seconds })
       updateStats()
     })
   </script>
