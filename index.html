@@ -122,7 +122,6 @@
       margin-top: 10px;
       font-size: 12px;
       letter-spacing: 0.15em;
-      color: var(--muted);
     }
 
     .log-section {
@@ -175,7 +174,7 @@
     </div>
   </div>
 
-  <div class="pct" id="pct">(00.0%)</div>
+  <div class="pct" id="pct">00.0%</div>
 
   <div class="log-section">
     <div class="log-label">Sessions</div>
@@ -257,7 +256,7 @@
         ball.classList.add('playing')
         startTimer()
         requestWakeLock()
-        playSound('dribble.mp3')
+        playSound('start.mp3')
         setTimeout(() => {
             audio.play()
         }, 1000)
@@ -268,7 +267,7 @@
         stopTimer()
         logSession()
         releaseWakeLock()
-        playSound('buzzer.mp3')
+        playSound('stop.mp3')
       }
     }
 
@@ -277,7 +276,7 @@
       const pct = total === 0 ? '00.0' : (madeCount / total * 100).toFixed(1)
       document.getElementById('stat-made').textContent = madeCount
       document.getElementById('stat-miss').textContent = missCount
-      document.getElementById('pct').textContent = '(' + pct + '%)'
+      document.getElementById('pct').textContent = '' + pct + '%'
     }
 
     function logSession() {
