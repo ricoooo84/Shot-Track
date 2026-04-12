@@ -205,32 +205,18 @@
     }
 
     async function saveToSupabase() {
-      playSound('sendclick.mp3')
       if (!allSessions.length) return;
-
-      const { data } = await client.from('shotdata').select('session').order('session', { ascending: false }).limit(1);
-      const sessionNumber = data && data.length ? data[0].session + 1 : 1;
 
       const rows = [];
       allSessions.forEach(s => {
         s.shots.forEach(shot => {
-          rows.push({
-            date: s.date,
-            time: shot.second,
-            result: shot.result,
-            session: sessionNumber
-          });
+          rows.push({ date: s.date, seconds: shot.second, result: shot.result });
         });
       });
 
       const { error } = await client.from('shotdata').insert(rows);
-      // TODO: add animations for success and error sending
       if (error) alert('Error: ' + error.message);
-      else {
-        playSound('sendsuccess.mp3')
-        allSessions.length = 0;
-        document.getElementById('log').innerHTML = '';
-      }
+      else alert('Saved!');
     }
 
     let audio = new Audio(tracks[0].file)
@@ -358,6 +344,6 @@
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZoY3ZrbXhlZmhxbW5jZ2FzZm5sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU5MzYzNTYsImV4cCI6MjA5MTUxMjM1Nn0.Iqjte1bBihP8pDIxbkueODS7NR8OL_aaJw2UybhL9oU'
     );
   </script>
-  
+
 </body>
 </html>
