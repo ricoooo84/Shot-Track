@@ -1,4 +1,4 @@
-ricoooo84.github.io/shottrack/
+[ricoooo84.github.io/shottrack/](https://ricoooo84.github.io/shottrack/)
 
 HOW TO USE:
 
